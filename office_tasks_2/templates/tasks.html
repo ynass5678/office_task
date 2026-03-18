@@ -1,0 +1,206 @@
+<!-- templates/tasks.html -->
+{% extends "base.html" %}
+
+{% block title %}Мои задачи{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Мои задачи</h1>
+
+    <section class="tasks-section">
+        <div class="tasks-header">
+            <button class="btn btn-primary" id="openTaskModal">Добавить задачу</button>
+
+            <form method="get" action="{{ url_for('tasks') }}" class="search-form">
+                <input type="hidden" name="view" value="{{ current_view }}">
+                <input type="text"
+                       name="q"
+                       placeholder="Поиск по №, названию, описанию"
+                       value="{{ search_query }}">
+                <button type="submit" class="btn btn-small">Поиск</button>
+            </form>
+        </div>
+
+        {% if tasks %}
+            <table class="tasks-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Название</th>
+                        <th>Статус</th>
+                        <th>Приоритет</th>
+                        <th>Категория</th>
+                        <th>Кем создана</th>
+                        <th>На кого назначена</th>
+                        <th>Дедлайн</th>
+                        <th>Создана</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+
+                        <!-- ID -->
+                        <td>{{ task.id }}</td>
+
+                        <!-- Название + описание -->
+                        <td>
+                            <strong>{{ task.title }}</strong><br>
+                            <small>{{ task.description }}</small>
+                        </td>
+
+                        <!-- СТАТУС: выпадающий список для всех -->
+                        <td>
+                            <form action="{{ url_for('change_task_status', task_id=task.id) }}" method="post">
+                                <select name="status_id" onchange="this.form.submit()">
+                                    {% for s in statuses %}
+                                        <option value="{{ s.id }}"
+                                            {% if s.name == task.status_name %}selected{% endif %}>
+                                            {{ s.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </td>
+
+                        <!-- ПРИОРИТЕТ — только админ -->
+                        <td>
+                            {% if current_user.role_code == 'ADMIN' %}
+                                <form action="{{ url_for('admin_update_task', task_id=task.id) }}" method="post">
+                                    <input type="hidden" name="field" value="priority">
+                                    <select name="value" onchange="this.form.submit()">
+                                        {% for p in priorities %}
+                                            <option value="{{ p.id }}"
+                                                {% if p.name == task.priority_name %}selected{% endif %}>
+                                                {{ p.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            {% else %}
+                                {{ task.priority_name }}
+                            {% endif %}
+                        </td>
+
+                        <!-- КАТЕГОРИЯ — только админ -->
+                        <td>
+                            {% if current_user.role_code == 'ADMIN' %}
+                                <form action="{{ url_for('admin_update_task', task_id=task.id) }}" method="post">
+                                    <input type="hidden" name="field" value="category">
+                                    <select name="value" onchange="this.form.submit()">
+                                        <option value="">—</option>
+                                        {% for c in categories %}
+                                            <option value="{{ c.id }}"
+                                                {% if c.name == task.category_name %}selected{% endif %}>
+                                                {{ c.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            {% else %}
+                                {{ task.category_name or "—" }}
+                            {% endif %}
+                        </td>
+
+                        <!-- Кем создана -->
+                        <td>{{ task.creator_name }}</td>
+
+                        <!-- Назначена — только админ может менять -->
+                        <td>
+                            {% if current_user.role_code == 'ADMIN' %}
+                                <form action="{{ url_for('admin_update_task', task_id=task.id) }}" method="post">
+                                    <input type="hidden" name="field" value="assignee">
+                                    <select name="value" onchange="this.form.submit()">
+                                        {% for emp in employees %}
+                                            <option value="{{ emp.id }}"
+                                                {% if emp.full_name == task.assignee_name %}selected{% endif %}>
+                                                {{ emp.full_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            {% else %}
+                                {{ task.assignee_name }}
+                            {% endif %}
+                        </td>
+
+                        <!-- Дедлайн -->
+                        <td>{{ task.due_date or "—" }}</td>
+
+                        <!-- Создана -->
+                        <td>{{ task.created_at }}</td>
+
+
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        {% else %}
+            <p>Задач по выбранному фильтру пока нет.</p>
+        {% endif %}
+    </section>
+</div>
+
+<!-- Модальное окно создания задачи -->
+<div class="modal-overlay hidden" id="taskModal">
+    <div class="modal">
+        <div class="modal-body">
+            <h2>Новая задача</h2>
+            <form action="{{ url_for('tasks') }}" method="post">
+                <label for="title">Название *</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+
+                <label for="status_id">Статус</label>
+                <select id="status_id" name="status_id">
+                    {% for s in statuses %}
+                        <option value="{{ s.id }}"
+                                {% if s.code == "NEW" %}selected{% endif %}>
+                            {{ s.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <label for="assignee_id">Сотрудник (на кого назначена)</label>
+                <select id="assignee_id" name="assignee_id" required>
+                    <option value="">— Выберите сотрудника —</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp.id }}"
+                            {% if emp.id == current_user.id %}selected{% endif %}>
+                            {{ emp.full_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <label for="priority_id">Приоритет</label>
+                <select id="priority_id" name="priority_id">
+                    {% for p in priorities %}
+                        <option value="{{ p.id }}"
+                                {% if p.code == "MEDIUM" %}selected{% endif %}>
+                            {{ p.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label for="category_id">Категория</label>
+                <select id="category_id" name="category_id">
+                    <option value="">(не выбрана)</option>
+                    {% for c in categories %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="due_date">Срок выполнения</label>
+                <input type="date" id="due_date" name="due_date">
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-outlined" id="closeTaskModal">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

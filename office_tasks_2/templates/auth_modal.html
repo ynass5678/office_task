@@ -1,0 +1,46 @@
+<!-- templates/auth_modal.html -->
+<div class="modal-overlay" id="authModal">
+    <div class="modal">
+        <div class="modal-body">
+            <div class="auth-forms" data-mode="login">
+                <!-- Форма входа -->
+                <form class="auth-form login-form" id="loginForm" action="{{ url_for('login') }}" method="post">
+                    <h2>Вход</h2>
+
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" name="username" required>
+
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required>
+
+                    <button type="submit" class="btn btn-primary">Войти</button>
+
+                    <div class="auth-switch">
+                        <span>Нет аккаунта?</span>
+                        <a href="#" id="showRegister">Регистрация</a>
+                    </div>
+                </form>
+
+                <!-- Форма регистрации -->
+                <form class="auth-form register-form" id="registerForm" action="{{ url_for('register') }}" method="post">
+                    <button type="button" class="back-btn" id="showLogin">&larr; Вернуться</button>
+                    <h2>Регистрация</h2>
+
+                    <label for="reg_full_name">ФИО *</label>
+                    <input type="text" id="reg_full_name" name="reg_full_name" required>
+
+                    <label for="reg_username">Логин *</label>
+                    <input type="text" id="reg_username" name="reg_username" required>
+
+                    <label for="reg_email">E-mail</label>
+                    <input type="email" id="reg_email" name="reg_email">
+
+                    <label for="reg_password">Пароль *</label>
+                    <input type="password" id="reg_password" name="reg_password" required>
+
+                    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

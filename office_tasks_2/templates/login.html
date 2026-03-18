@@ -1,0 +1,9 @@
+<!-- templates/login.html -->
+{% extends "base.html" %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+    <!-- Неавторизованный пользователь видит только модалку -->
+    {% include "auth_modal.html" %}
+{% endblock %}

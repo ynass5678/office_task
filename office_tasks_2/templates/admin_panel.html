@@ -1,0 +1,74 @@
+<!-- templates/admin_panel.html -->
+{% extends "base.html" %}
+
+{% block title %}Панель администрирования{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Панель администрирования</h1>
+
+    <section class="admin-section">
+        <h2>Краткая статистика</h2>
+        <div class="stats-grid">
+            {% for s in status_stats %}
+                <div class="stat-card">
+                    <div class="stat-title">{{ s.name }}</div>
+                    <div class="stat-value">{{ s.task_count }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="admin-section">
+        <h2>Пользователи</h2>
+        <table class="tasks-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Логин</th>
+                    <th>ФИО</th>
+                    <th>E-mail</th>
+                    <th>Роль</th>
+                    <th>Активен</th>
+                    <th>Создан</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                    <tr>
+                        <form method="post" action="{{ url_for('admin_update_user', user_id=u.id) }}">
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>
+                                <input type="text" name="full_name" value="{{ u.full_name }}" required>
+                            </td>
+                            <td>
+                                <input type="email" name="email" value="{{ u.email or '' }}">
+                            </td>
+                            <td>
+                                <select name="role_id" required>
+                                    {% for r in roles %}
+                                        <option value="{{ r.id }}"
+                                            {% if r.id == u.role_id %}selected{% endif %}>
+                                            {{ r.name }} ({{ r.code }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="checkbox" name="is_active"
+                                       {% if u.is_active %}checked{% endif %}>
+                            </td>
+                            <td>{{ u.created_at }}</td>
+                            <td>
+                                <button type="submit" class="btn btn-small">Сохранить</button>
+                            </td>
+                        </form>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

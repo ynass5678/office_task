@@ -1,0 +1,39 @@
+<!-- templates/header.html -->
+<header class="site-header">
+    <div class="container header-inner">
+        <div class="header-left">
+            <div class="logo">
+                <a href="{{ url_for('tasks') }}">OfficeTasks</a>
+            </div>
+
+            {% if current_user %}
+                <nav class="main-nav">
+                    <a href="{{ url_for('tasks', view='created') }}"
+                       class="nav-link {% if request.endpoint == 'tasks' and current_view == 'created' %}active{% endif %}">
+                        Созданные мной
+                    </a>
+                    <a href="{{ url_for('tasks', view='assigned') }}"
+                       class="nav-link {% if request.endpoint == 'tasks' and (current_view == 'assigned' or not current_view) %}active{% endif %}">
+                        Назначенные мне
+                    </a>
+                    {% if current_user.role_code == 'ADMIN' %}
+                        <a href="{{ url_for('tasks', view='all') }}"
+                           class="nav-link {% if request.endpoint == 'tasks' and current_view == 'all' %}active{% endif %}">
+                            Все задачи
+                        </a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+
+        <div class="header-right">
+            {% if current_user %}
+                {% if current_user.role_code == 'ADMIN' %}
+                    <a href="{{ url_for('admin_panel') }}" class="btn btn-outlined admin-btn">Адм. панель</a>
+                {% endif %}
+                <span class="user-name">{{ current_user.full_name }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outlined">Выйти</a>
+            {% endif %}
+        </div>
+    </div>
+</header>
